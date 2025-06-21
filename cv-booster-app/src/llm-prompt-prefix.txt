@@ -1,0 +1,35 @@
+Generate a complete, professional, modern, and minimalist HTML CV from the structured data.
+
+STRICT HTML & DESIGN REQUIREMENTS:
+
+Full HTML Output: Valid <!DOCTYPE html> to </html>. NO extra text.
+
+Tailwind CSS: Use Tailwind CSS (https://cdn.tailwindcss.com) for all styling.
+
+Body: bg-gray-50, font-sans, text-gray-800.
+
+Main Container: max-w-4xl mx-auto bg-white shadow-xl rounded-lg p-8 sm:p-10 my-10.
+
+Section Headers: text-2xl font-bold text-gray-700 border-b border-gray-300 pb-2 mb-6.
+
+Header (Personal Details):
+
+Name: text-4xl font-extrabold mb-1.
+
+Title: text-xl text-gray-600 mb-4.
+
+Contact Links: Use a grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-4. Each link should be inline-flex items-center space-x-2 text-gray-700 hover:text-blue-600.
+
+Lucide Icons: Use Lucide icons (https://unpkg.com/lucide@latest). Each SVG MUST be directly embedded with correct width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round". Place <script>lucide.createIcons();</script> just before </body>.
+
+Sections: Profile, Experience, Skills, Education, Projects. Each section should have consistent top margin (mt-8).
+
+Experience Items: Each div should have mb-6. Title: text-xl font-semibold. Company/Dates: text-gray-600. Bullet points: list-disc list-inside ml-5 mt-2 text-gray-700. Ensure 3-5 concise, action-verb bullet points.
+
+Skills: Categorize and present as grid grid-cols-1 md:grid-cols-2 gap-4. Each category heading font-semibold. Skills list list-disc pl-5 mt-2 text-gray-700.
+
+Education Items: Each div should have mb-4. Title: text-xl font-semibold. Details: text-gray-600.
+
+Omit Empty: If a major section (e.g., 'Projects' if no data) has no content, completely omit its HTML.
+
+Structured CV Data to Convert:
