@@ -1,8 +1,8 @@
 // src/App.jsx
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import pdfToText from "react-pdftotext";
-import HtmlPreview from "./components/HtmlPreview"; // Import the new HtmlPreview component
-import { fillHtmlTemplate } from "./utils/cvGenerator"; // Import the utility function for template filling
+import HtmlPreview from "./components/HtmlPreview";
+import { fillHtmlTemplate } from "./utils/cvGenerator";
 
 // Import the prompt content for the single LLM call (JSON output)
 import initialLlmPromptText from "./initial-llm-prompt.txt?raw";
@@ -13,17 +13,32 @@ function App() {
   const [pdfError, setPdfError] = useState("");
 
   // States for loading and errors
-  const [loading, setLoading] = useState(false); // Combined loading for all steps
+  const [loading, setLoading] = useState(false);
   const [llmError, setLlmError] = useState("");
 
   // States for data
-  const [initialLlmResponseText, setInitialLlmResponseText] = useState(""); // Raw JSON string from LLM
-  const [llmHtmlOutput, setLlmHtmlOutput] = useState(""); // Final HTML string after template filling
+  const [initialLlmResponseText, setInitialLlmResponseText] = useState("");
+  const [llmHtmlOutput, setLlmHtmlOutput] = useState("");
 
   // Gemini API configuration
-  // IMPORTANT: Keep this empty. Canvas environment injects the key securely at runtime.
-  const apiKey = "AIzaSyD0kc9_eP5oNGF2sKZKQF5rp0_s7Hej9oY";
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+  // State to hold a reference to the iframe element for PDF conversion
+  const iframeRef = React.useRef(null);
+
+  // Dynamically load html2pdf.js script when the component mounts
+  useEffect(() => {
+    const scriptId = "html2pdf-script";
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   /**
    * Copies the initial LLM (JSON) response text to the clipboard.
@@ -46,11 +61,72 @@ function App() {
   }, [initialLlmResponseText]);
 
   /**
+   * Handles the download of the generated HTML as a PDF.
+   */
+  const handleDownloadPdf = useCallback(() => {
+    if (!llmHtmlOutput) {
+      alert("No CV generated yet to download as PDF!");
+      return;
+    }
+
+    if (typeof window.html2pdf === "undefined") {
+      alert(
+        "PDF generation library is still loading. Please try again in a moment."
+      );
+      return;
+    }
+
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const iframeBody = iframeRef.current.contentWindow.document.body;
+      const iframeDocument = iframeRef.current.contentWindow.document;
+
+      // Create a temporary element to hold the content to be converted.
+      // This is sometimes more reliable than directly passing iframeBody.
+      const contentToPrint = iframeDocument.createElement("div");
+      contentToPrint.innerHTML = iframeBody.innerHTML;
+      contentToPrint.style.width = "7.5in"; // Set a fixed width for PDF rendering
+      contentToPrint.style.margin = "auto"; // Center the content
+
+      // Get CV name for filename, default to 'Your_CV'
+      const cvNameMatch = llmHtmlOutput.match(/<title>.*? - (.*?)<\/title>/);
+      const filename =
+        cvNameMatch && cvNameMatch[1]
+          ? cvNameMatch[1].trim().replace(/\s/g, "_") + ".pdf"
+          : "Your_CV.pdf";
+
+      const options = {
+        margin: [0.5, 0.5, 0.5, 0.5], // Top, Left, Bottom, Right margins in inches
+        filename: filename,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2, // Higher scale for better resolution
+          logging: true,
+          useCORS: true,
+          allowTaint: true,
+          // Explicitly set width if the content doesn't fit naturally
+          width: iframeBody.scrollWidth > 0 ? iframeBody.scrollWidth : 800, // Use scrollWidth for content width or a fallback
+        },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      };
+
+      // Use a small timeout to ensure everything (especially fonts/icons) is rendered
+      // before html2canvas takes a snapshot.
+      setTimeout(() => {
+        window.html2pdf().from(contentToPrint).set(options).save();
+      }, 500); // 500ms delay
+    } else {
+      alert(
+        "PDF generation failed: Could not access iframe content. Please ensure the CV is fully loaded."
+      );
+    }
+  }, [llmHtmlOutput]);
+
+  /**
    * Sends the extracted text to the Gemini API to get structured JSON data.
    */
   const getStructuredDataFromLlm = useCallback(
     async (pdfText) => {
-      setLlmError(""); // Clear previous errors
+      setLlmError("");
       if (!pdfText) {
         setLlmError("No PDF text to send to LLM for processing.");
         return null;
@@ -97,11 +173,10 @@ function App() {
           jsonString = result.candidates[0].content.parts[0].text;
 
           console.log("--- LLM Raw JSON Output ---");
-          console.log(jsonString.trim()); // Log raw JSON to console
+          console.log(jsonString.trim());
 
-          setInitialLlmResponseText(jsonString.trim()); // Store for display
+          setInitialLlmResponseText(jsonString.trim());
 
-          // Attempt to parse JSON. Handle cases where LLM might wrap JSON in markdown code block.
           let parsedData;
           try {
             if (
@@ -150,7 +225,7 @@ function App() {
       setLlmError("");
       setInitialLlmResponseText("");
       setLlmHtmlOutput("");
-      setLoading(false); // Reset overall loading
+      setLoading(false);
 
       if (!file) return;
 
@@ -159,20 +234,18 @@ function App() {
         return;
       }
 
-      setLoading(true); // Start overall loading indicator
+      setLoading(true);
 
       try {
         const text = await pdfToText(file);
         const trimmedText = text.trim();
 
         console.log("--- Extracted Text from PDF ---");
-        console.log(trimmedText); // Log extracted text to console
+        console.log(trimmedText);
 
-        // Get structured JSON data from LLM (Stage 1)
         const cvData = await getStructuredDataFromLlm(trimmedText);
 
         if (cvData) {
-          // Fill the HTML template with the received JSON data (Client-side)
           const generatedHtml = fillHtmlTemplate(cvData);
           setLlmHtmlOutput(generatedHtml);
         }
@@ -182,18 +255,15 @@ function App() {
           `Processing failed: ${err.message}. Please check console for details.`
         );
       } finally {
-        setLoading(false); // End overall loading indicator
+        setLoading(false);
       }
     },
     [getStructuredDataFromLlm, fillHtmlTemplate]
   );
 
   return (
-    // Main container for the application
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
-      {/* Central content card */}
       <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-5xl transform transition-all duration-300 hover:scale-[1.01] hover:shadow-3xl">
-        {/* Application Title */}
         <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6 tracking-tight">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
             CV Booster
@@ -204,7 +274,6 @@ function App() {
           </span>
         </h1>
 
-        {/* File Upload Section */}
         <div className="mb-8 border-b-2 border-gray-200 pb-6">
           <label
             htmlFor="pdf-upload"
@@ -228,8 +297,8 @@ function App() {
             <input
               id="pdf-upload"
               type="file"
-              accept=".pdf" // Restrict file selection to PDF files only
-              onChange={handleFileChange} // Call handler when file changes
+              accept=".pdf"
+              onChange={handleFileChange}
               className="hidden"
             />
           </label>
@@ -240,7 +309,6 @@ function App() {
           )}
         </div>
 
-        {/* Loading Indicator for all stages */}
         {loading && (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500"></div>
@@ -250,7 +318,6 @@ function App() {
           </div>
         )}
 
-        {/* LLM Raw JSON Output Display 
         {initialLlmResponseText && !loading && (
           <div className="mt-6 border-t-2 border-gray-200 pt-6">
             <h2 className="text-2xl font-bold text-gray-700 mb-4 text-center flex items-center justify-center">
@@ -270,19 +337,28 @@ function App() {
             </div>
           </div>
         )}
-          */}
 
-        {/* Render the HtmlPreview component */}
-        {llmHtmlOutput && <HtmlPreview htmlContent={llmHtmlOutput} />}
+        {llmHtmlOutput && (
+          <>
+            <HtmlPreview htmlContent={llmHtmlOutput} iframeRef={iframeRef} />
 
-        {/* LLM Error Display */}
+            <div className="mt-4 text-center">
+              <button
+                onClick={handleDownloadPdf}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105"
+              >
+                Download CV as PDF
+              </button>
+            </div>
+          </>
+        )}
+
         {llmError && (
           <p className="mt-4 text-center text-red-600 text-sm font-semibold p-2 bg-red-50 border border-red-200 rounded-md">
             {llmError}
           </p>
         )}
 
-        {/* Initial Prompt Message (when nothing is loaded/displayed) */}
         {!loading && !fileName && !llmHtmlOutput && !initialLlmResponseText && (
           <div className="text-center text-gray-500 py-10">
             <p className="text-lg">Upload your CV to see the magic!</p>

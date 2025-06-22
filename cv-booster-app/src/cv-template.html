@@ -12,107 +12,180 @@
       rel="stylesheet"
     />
     <style>
-      /* Custom CSS for refined aesthetics not easily achievable with basic Tailwind classes */
+      /* Global Box Sizing for predictable layout */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      /* Base styles for screen */
       body {
         font-family: "Inter", sans-serif;
         -webkit-font-smoothing: antialiased;
+        line-height: 1.5; /* Improved readability */
       }
       .cv-container {
-        border: 1px solid #e2e8f0; /* Light border */
-        max-width: 800px;
+        border: 1px solid #e2e8f0;
+        max-width: 800px; /* Max width for screen display */
         width: 100%;
-        margin: 2.5rem auto; /* Adjusted margin for better vertical spacing */
-        padding: 2.5rem; /* Consistent padding */
+        margin: 2.5rem auto;
+        padding: 2.5rem;
         background-color: #ffffff;
         box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15),
-          0 0px 10px -5px rgba(0, 0, 0, 0.08); /* Deeper shadow for "floating" effect */
-        border-radius: 0.75rem; /* Rounded corners */
+          0 0px 10px -5px rgba(0, 0, 0, 0.08);
+        border-radius: 0.75rem;
       }
       .section-header {
         position: relative;
-        padding-bottom: 0.75rem; /* Space below title before line */
-        margin-bottom: 1.5rem; /* Space after line to content */
-        text-align: left; /* Align header to left for modern look */
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+        text-align: left;
+        color: #4338ca; /* Darker indigo for headers */
       }
       .section-header::after {
         content: "";
         position: absolute;
         left: 0;
         bottom: 0;
-        width: 60px; /* Short underline */
-        height: 3px; /* Thickness */
-        background-color: #818cf8; /* Light indigo accent */
-        border-radius: 9999px; /* Pill shape */
+        width: 60px;
+        height: 3px;
+        background-color: #818cf8;
+        border-radius: 9999px;
       }
       .experience-item,
       .education-item,
       .project-item {
-        margin-bottom: 1.75rem; /* More space between items */
-        padding-left: 1rem; /* Indent for clean alignment */
-        padding-top: 0.5rem; /* Vertical padding */
-        padding-bottom: 0.5rem; /* Vertical padding */
-        border-left: 4px solid #c7d2fe; /* Subtle left border highlight */
+        margin-bottom: 1.75rem;
+        padding-left: 1rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-left: 4px solid #c7d2fe;
       }
       .experience-item:last-child,
       .education-item:last-child,
       .project-item:last-child {
-        margin-bottom: 0; /* No bottom margin on last item in a section */
+        margin-bottom: 0;
       }
       .bullet-list {
-        list-style: none; /* Remove default bullets */
+        list-style: none;
         padding-left: 0;
         margin-top: 0.75rem;
       }
       .bullet-list li {
         position: relative;
-        padding-left: 1.5rem; /* Space for custom bullet */
-        margin-bottom: 0.5rem; /* Space between bullet points */
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
       }
       .bullet-list li::before {
-        content: "•"; /* Simple bullet */
+        content: "•";
         position: absolute;
         left: 0;
-        color: #6366f1; /* Indigo bullet color */
+        color: #6366f1;
         font-weight: bold;
         font-size: 1.1em;
-        line-height: 1; /* Align bullet vertically */
+        line-height: 1;
       }
-      /* Refined skills grid styles */
       .skills-grid {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem; /* Consistent spacing between tags */
-        margin-top: 0.5rem; /* Small margin from category header */
+        gap: 0.75rem;
+        margin-top: 0.5rem;
       }
       .skills-grid span {
         display: inline-block;
-        background-color: #eef2ff; /* Light indigo background for tags */
-        color: #4338ca; /* Darker indigo text */
-        padding: 0.4rem 1rem; /* More padding for larger tags */
-        border-radius: 0.5rem; /* Rounded tags */
-        font-size: 0.95rem; /* Slightly larger font */
+        background-color: #eef2ff;
+        color: #4338ca;
+        padding: 0.4rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
         font-weight: 500;
         white-space: nowrap;
-        transition: transform 0.2s ease-in-out; /* Smooth hover effect */
+        transition: transform 0.2s ease-in-out;
       }
       .skills-grid span:hover {
-        transform: translateY(-2px); /* Slight lift on hover */
+        transform: translateY(-2px);
       }
-      /* Style for skill category headers within the grid */
       .skills-category-group {
-        margin-bottom: 1rem; /* Space between skill categories */
+        margin-bottom: 1rem;
         padding-bottom: 0.5rem;
-        border-bottom: 1px dashed #e0e7ff; /* Subtle dashed line */
+        border-bottom: 1px dashed #e0e7ff;
       }
       .skills-category-group:last-child {
-        border-bottom: none; /* No border for the last category */
+        border-bottom: none;
         margin-bottom: 0;
         padding-bottom: 0;
       }
       .skills-category-group h3 {
-        font-weight: 600; /* Bolder category name */
-        color: #312e81; /* Darker indigo for category names */
+        font-weight: 600;
+        color: #312e81;
         margin-bottom: 0.5rem;
+      }
+
+      /* --- PRINT STYLES --- */
+      @media print {
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: #fff !important; /* Ensure white background for print */
+          color: #000 !important; /* Ensure black text for print */
+        }
+        .cv-container {
+          box-shadow: none !important; /* Remove shadows for print */
+          border: none !important; /* Remove border for print */
+          margin: 0; /* No external margins */
+          max-width: 100% !important; /* Allow full width for print capture */
+          width: 100% !important;
+          padding: 0.75in; /* A standard print margin, html2pdf will add its own too */
+          border-radius: 0; /* No rounded corners for print */
+        }
+        /* Break pages cleanly - avoid breaking inside these elements */
+        .experience-item,
+        .education-item,
+        .project-item,
+        .skills-category-group {
+          page-break-inside: avoid;
+        }
+        /* Ensure text colors are readable on print */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          color: #000 !important;
+        }
+        p,
+        span,
+        li,
+        a {
+          color: #333 !important;
+        }
+        .text-gray-600,
+        .text-gray-700,
+        .text-gray-800,
+        .text-gray-900 {
+          color: #333 !important;
+        }
+        .text-indigo-600,
+        .text-indigo-700 {
+          color: #000080 !important;
+        } /* Dark blue for links in print */
+
+        /* Remove backgrounds from tags for print */
+        .skills-grid span {
+          background-color: #e0e0e0 !important;
+          color: #333 !important;
+          border: 1px solid #ccc !important;
+        }
+
+        /* Adjust header bottom border for print clarity */
+        header.border-b {
+          border-bottom: 1px solid #ccc !important; /* Lighter border for print */
+        }
+        .section-header::after {
+          background-color: #666 !important; /* Darker accent for print */
+        }
       }
     </style>
     <!-- Lucide Icons CDN -->
@@ -129,8 +202,9 @@
         <div
           class="contact-links grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-1 gap-x-4 mt-4 text-base font-medium text-gray-700"
         >
+          {{#if contact_info.email}}
           <a
-            href="mailto:{{email}}"
+            href="mailto:{{contact_info.email}}"
             class="inline-flex items-center space-x-2 hover:text-indigo-700 transition-colors duration-200"
           >
             <svg
@@ -148,10 +222,11 @@
               <rect width="20" height="16" x="2" y="4" rx="2" />
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
             </svg>
-            <span>{{email}}</span>
+            <span>{{contact_info.email}}</span>
           </a>
+          {{/if}} {{#if contact_info.phone}}
           <a
-            href="tel:{{phone}}"
+            href="tel:{{contact_info.phone}}"
             class="inline-flex items-center space-x-2 hover:text-indigo-700 transition-colors duration-200"
           >
             <svg
@@ -167,13 +242,14 @@
               class="lucide lucide-phone"
             >
               <path
-                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9.81 9.91a16 16 0 0 0 6.26 6.26l1.58-1.58a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 🔥-2.81 2 2 0 0 1-.45 2.11L9.81 9.91a16 16 0 0 0 6.26 6.26l1.58-1.58a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
               />
             </svg>
-            <span>{{phone}}</span>
+            <span>{{contact_info.phone}}</span>
           </a>
+          {{/if}} {{#if contact_info.linkedin_url}}
           <a
-            href="{{linkedin_url}}"
+            href="{{contact_info.linkedin_url}}"
             target="_blank"
             class="inline-flex items-center space-x-2 hover:text-indigo-700 transition-colors duration-200"
           >
@@ -197,9 +273,9 @@
             </svg>
             <span>LinkedIn</span>
           </a>
-          {{#if github_url}}
+          {{/if}} {{#if contact_info.github_url}}
           <a
-            href="{{github_url}}"
+            href="{{contact_info.github_url}}"
             target="_blank"
             class="inline-flex items-center space-x-2 hover:text-indigo-700 transition-colors duration-200"
           >
@@ -222,9 +298,9 @@
             </svg>
             <span>GitHub</span>
           </a>
-          {{/if}} {{#if website_url}}
+          {{/if}} {{#if contact_info.website_url}}
           <a
-            href="{{website_url}}"
+            href="{{contact_info.website_url}}"
             target="_blank"
             class="inline-flex items-center space-x-2 hover:text-indigo-700 transition-colors duration-200"
           >
@@ -246,7 +322,7 @@
             </svg>
             <span>Website</span>
           </a>
-          {{/if}} {{#if location}}
+          {{/if}} {{#if contact_info.location}}
           <div class="inline-flex items-center space-x-2 text-gray-700">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -263,19 +339,21 @@
               <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            <span>{{location}}</span>
+            <span>{{contact_info.location}}</span>
           </div>
           {{/if}}
         </div>
       </header>
 
       <!-- Profile Summary Section -->
+      <!-- START_SECTION:profile_summary_section -->
       <section class="mt-8">
         <h2 class="text-2xl font-bold section-header">Profile</h2>
         <p class="text-base text-gray-700 leading-relaxed">
           {{profile_summary}}
         </p>
       </section>
+      <!-- END_SECTION:profile_summary_section -->
 
       <!-- START_SECTION:experience -->
       <section class="mt-8">
